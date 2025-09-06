@@ -25,13 +25,10 @@ function getSheetData(sheetName) {
   }
 }
 
-// Fungsi sudah diupdate agar tidak sensitif huruf besar-kecil
 function cekLogin(email) {
   const users = getSheetData('Users');
   if (!users) { return { success: false, message: 'Gagal mengakses data user.' }; }
-  
   const userFound = users.find(user => user['Email'].toLowerCase() === email.toLowerCase());
-  
   if (userFound) {
     if (userFound['Aktif'] === 'Ya') {
       return {
@@ -72,6 +69,39 @@ function cekMember(nomorHp) {
   }
 }
 
+// --- FUNGSI BARU UNTUK MENAMBAH MEMBER ---
+function tambahMemberBaru(dataMember) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const memberSheet = ss.getSheetByName('Member');
+    
+    // Cek duplikasi nomor HP
+    const data = memberSheet.getDataRange().getValues();
+    const nomorHpColumn = data[0].indexOf('Nomor HP');
+    const nomorHpExists = data.slice(1).some(row => String(row[nomorHpColumn]).replace(/\D/g, '') === String(dataMember.nomorHp).replace(/\D/g, ''));
+
+    if (nomorHpExists) {
+      return { success: false, message: 'Gagal: Nomor HP ini sudah terdaftar sebagai member.' };
+    }
+
+    const tanggalDaftar = new Date();
+    // Sesuaikan dengan urutan kolom di sheet 'Member' Anda
+    memberSheet.appendRow([
+      dataMember.nomorHp,
+      dataMember.nama,
+      tanggalDaftar,
+      'Aktif', // Status default
+      '' // Kolom catatan kosong
+    ]);
+
+    return { success: true, message: `Member baru "${dataMember.nama}" berhasil didaftarkan!` };
+  } catch (e) {
+    Logger.log(e);
+    return { success: false, message: 'Error di server: ' + e.toString() };
+  }
+}
+
+
 function simpanTransaksi(data) {
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
@@ -79,19 +109,11 @@ function simpanTransaksi(data) {
     const laporanSheet = ss.getSheetByName('Laporan');
     const timestamp = new Date();
     const idTransaksi = "TRX-" + timestamp.getTime();
-
     data.items.forEach(item => {
       const hargaJual = item.produk['Harga Jual'] || 0;
       const hargaAkhirSatuan = item.hargaAkhirSatuan || hargaJual;
-
-      trxSheet.appendRow([ 
-          idTransaksi, timestamp, data.memberId, 
-          item.produk['ID Produk'], item.produk['Nama Produk'], item.produk['Ukuran/Variasi'], 
-          item.qty, hargaJual, hargaAkhirSatuan * item.qty, 
-          data.metodePembayaran, data.detailMetode, data.cabang 
-      ]);
+      trxSheet.appendRow([ idTransaksi, timestamp, data.memberId, item.produk['ID Produk'], item.produk['Nama Produk'], item.produk['Ukuran/Variasi'], item.qty, hargaJual, hargaAkhirSatuan * item.qty, data.metodePembayaran, data.detailMetode, data.cabang ]);
     });
-    
     updateLaporan(laporanSheet, timestamp, data.totalAkhir, data.metodePembayaran, data.cabang);
     return "Sukses";
   } catch (e) {
@@ -117,10 +139,12 @@ function updateLaporan(sheet, timestamp, total, metode, cabang) {
   }
 
   if (rowFound !== -1) {
-    sheet.getRange(rowFound, 3).setValue(sheet.getRange(rowFound, 3).getValue() + total);
-    sheet.getRange(rowFound, 4).setValue(sheet.getRange(rowFound, 4).getValue() + (metode === 'Tunai' ? total : 0));
-    sheet.getRange(rowFound, 5).setValue(sheet.getRange(rowFound, 5).getValue() + (metode !== 'Tunai' ? total : 0));
-    sheet.getRange(rowFound, 6).setValue(sheet.getRange(rowFound, 6).getValue() + 1);
+    const totalPenjualan = (parseFloat(sheet.getRange(rowFound, 3).getValue()) || 0) + total;
+    const totalTunai = (parseFloat(sheet.getRange(rowFound, 4).getValue()) || 0) + (metode === 'Tunai' ? total : 0);
+    const totalNonTunai = (parseFloat(sheet.getRange(rowFound, 5).getValue()) || 0) + (metode !== 'Tunai' ? total : 0);
+    const jmlTransaksi = (parseInt(sheet.getRange(rowFound, 6).getValue()) || 0) + 1;
+    
+    sheet.getRange(rowFound, 3, 1, 4).setValues([[totalPenjualan, totalTunai, totalNonTunai, jmlTransaksi]]);
   } else {
     const formattedDate = new Date(tanggal + "T00:00:00");
     const newRow = [formattedDate, cabang, total, (metode === 'Tunai' ? total : 0), (metode !== 'Tunai' ? total : 0), 1];
@@ -128,7 +152,7 @@ function updateLaporan(sheet, timestamp, total, metode, cabang) {
   }
 }
 
-function getLaporanHarian(cabang) {
+function getLaporanHarian(userInfo) {
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const sheet = ss.getSheetByName('Laporan');
@@ -136,23 +160,35 @@ function getLaporanHarian(cabang) {
     
     const data = sheet.getDataRange().getValues();
     const today = Utilities.formatDate(new Date(), ZONA_WAKTU, "yyyy-MM-dd");
+    const reports = [];
 
     for (let i = data.length - 1; i >= 1; i--) {
        if(data[i][0]) {
         const rowDate = Utilities.formatDate(new Date(data[i][0]), ZONA_WAKTU, "yyyy-MM-dd");
-        const rowCabang = data[i][1];
-        if (rowDate === today && rowCabang === cabang) {
-          return {
-            totalPenjualan: data[i][2] || 0,
-            totalTunai: data[i][3] || 0,
-            totalNonTunai: data[i][4] || 0,
-            jumlahTransaksi: data[i][5] || 0
-          };
+        if (rowDate === today) {
+           const reportData = {
+              cabang: data[i][1],
+              totalPenjualan: data[i][2] || 0,
+              totalTunai: data[i][3] || 0,
+              totalNonTunai: data[i][4] || 0,
+              jumlahTransaksi: data[i][5] || 0
+           };
+           reports.push(reportData);
         }
       }
     }
+
+    if (userInfo.role === 'Admin') {
+      return { reports: reports };
+    } else {
+      const kasirReport = reports.find(r => r.cabang === userInfo.cabang);
+      if (kasirReport) {
+        return { reports: [kasirReport] };
+      } else {
+        return { reports: [{ cabang: userInfo.cabang, totalPenjualan: 0, jumlahTransaksi: 0, totalTunai: 0, totalNonTunai: 0 }]};
+      }
+    }
     
-    return { totalPenjualan: 0, jumlahTransaksi: 0, totalTunai: 0, totalNonTunai: 0 };
   } catch (e) {
     Logger.log(e);
     return { error: e.toString() };
