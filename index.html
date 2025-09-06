@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <base target="_top">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kasir Toko Tanaman</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif; margin: 0; padding: 10px; background-color: #f0f2f5; color: #333; }
-    .container { max-width: 500px; margin: 0 auto; }
+    /* Light Mode (Default) */
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif; margin: 0; padding: 10px; background-color: #f0f2f5; color: #333; transition: background-color 0.3s, color 0.3s; }
     .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin: 15px 0; }
     h2, h3, h4 { color: #1a1a1a; margin-top: 0; }
     input, select, button { padding: 12px 15px; margin: 8px 0; width: 100%; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
@@ -15,8 +14,10 @@
     button:disabled { background-color: #aaa; cursor: not-allowed; }
     .hidden { display: none; }
     #loader, #reportLoader { text-align: center; padding: 20px; }
-    #userInfo { display: flex; justify-content: space-between; align-items: center; color: #555; margin-bottom: 10px; font-size: 14px;}
+    .header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    #userInfo { flex-grow: 1; color: #555; font-size: 14px;}
     #userInfo a { font-weight:bold; color:#dc3545; text-decoration:none; font-size: 12px; }
+    #theme-toggle { width: 40px; height: 40px; padding: 0; margin-left: 10px; font-size: 20px; border-radius: 50%; background-color: #e9ecef; color: #333; border: 1px solid #ddd; line-height: 1; }
     .nav { display: flex; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-radius: 12px; margin: 0 auto; padding: 5px; }
     .nav-button { flex: 1; padding: 15px; text-align: center; background: none; border: none; font-size: 16px; font-weight: bold; color: #555; cursor: pointer; border-radius: 8px; }
     .nav-button.active { background: #28a745; color: #fff; }
@@ -47,12 +48,18 @@
     .pagination-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
     .pagination-controls button { width: auto; padding: 8px 15px; font-size: 14px; }
     .pagination-controls span { font-weight: bold; font-size: 14px; }
-    .report-summary, .report-grand-total { text-align: center; }
-    .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
     .report-card { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;}
     .report-card h4 { margin: 0 0 10px 0; color: #555; font-size: 14px; }
     .report-card p { margin: 0; font-size: 22px; font-weight: bold; color: #1a1a1a; }
+    .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
     .report-grand-total { background: #e9ecef; padding: 20px; border-radius: 12px; margin-top: 20px; }
+    .report-detail-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
+    .report-detail-table th, .report-detail-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    .report-detail-table th { background-color: #f2f2f2; }
+    details summary { font-weight: bold; cursor: pointer; padding: 10px; background-color: #f1f1f1; border-radius: 8px; margin-top: 20px; list-style: none; /* Sembunyikan panah default */ position: relative; padding-left: 30px; }
+    details summary::-webkit-details-marker { display: none; /* Sembunyikan panah di Chrome/Safari */ }
+    details summary::before { content: '▶'; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); }
+    details[open] > summary::before { content: '▼'; }
     .cart-controls { flex-basis: 100%; display: flex; align-items: center; justify-content: space-between; background-color: #f8f9fa; padding: 8px; border-radius: 8px; margin-top: 8px; }
     .quantity-controls { display: flex; align-items: center; }
     .quantity-controls button { width: 30px; height: 30px; padding: 0; font-size: 20px; line-height: 1; border-radius: 50%; }
@@ -61,6 +68,27 @@
     .price-control { display: flex; align-items: center; gap: 5px; }
     .price-control input { width: 90px; text-align: right; padding: 5px; height: auto;}
     #strukArea { display: none; }
+    
+    /* Dark Mode Styles */
+    body.dark-mode { background-color: #1a1a1a; color: #e0e0e0; }
+    body.dark-mode .card { background-color: #2c2c2c; border: 1px solid #444; }
+    body.dark-mode h2, body.dark-mode h3, body.dark-mode h4 { color: #f5f5f5; }
+    body.dark-mode input, body.dark-mode select { background-color: #333; border-color: #555; color: #e0e0e0; }
+    body.dark-mode input::placeholder { color: #888; }
+    body.dark-mode .nav { background-color: #2c2c2c; }
+    body.dark-mode .nav-button { color: #aaa; }
+    body.dark-mode .nav-button.active { background: #28a745; color: #fff; }
+    body.dark-mode .product-card { background-color: #333; border-color: #444; }
+    body.dark-mode .cart-item { border-bottom-color: #444; }
+    body.dark-mode .cart-controls { background-color: #3a3a3a; }
+    body.dark-mode #theme-toggle { background-color: #444; color: #e0e0e0; border-color: #555; }
+    body.dark-mode .report-card, body.dark-mode .report-grand-total { background-color: #333; }
+    body.dark-mode .report-card h4 { color: #aaa; }
+    body.dark-mode .report-card p { color: #f5f5f5; }
+    body.dark-mode details summary { background-color: #3a3a3a; }
+    body.dark-mode .report-detail-table th, body.dark-mode .report-detail-table td { border-color: #555; }
+    body.dark-mode .report-detail-table th { background-color: #444; }
+    
     @media print {
       body * { visibility: hidden; }
       #strukArea, #strukArea * { visibility: visible; }
@@ -85,7 +113,10 @@
 
   <div id="appContainer" class="hidden">
     <div class="container">
-      <p id="userInfo"></p>
+      <div class="header-controls">
+        <p id="userInfo"></p>
+        <button id="theme-toggle" onclick="toggleTheme()">☀️</button>
+      </div>
       <div class="nav">
         <button class="nav-button active" id="navKasir" onclick="tampilkanHalaman('pos')">Kasir</button>
         <button class="nav-button" id="navLaporan" onclick="tampilkanHalaman('laporan')">Laporan</button>
@@ -114,22 +145,31 @@
               <button id="nextPageBtn" onclick="changePage(1)">Berikutnya &raquo;</button>
             </div>
           </div>
-           <div class="card">
-            <h3>Daftarkan Member Baru</h3>
-            <input type="text" id="newMemberName" placeholder="Nama Member Baru">
-            <input type="number" id="newMemberHp" placeholder="Nomor HP Member Baru">
-            <button onclick="daftarkanMemberBaru(this)">+ Daftarkan Member</button>
+          <div class="card">
+            <button onclick="toggleForm('memberFormContainer')" style="background-color: #6c757d;">+ Daftarkan Member Baru</button>
+            <div id="memberFormContainer" class="hidden" style="margin-top: 15px;">
+              <h3>Form Member Baru</h3>
+              <input type="text" id="newMemberName" placeholder="Nama Member Baru">
+              <input type="number" id="newMemberHp" placeholder="Nomor HP Member Baru">
+              <button onclick="daftarkanMemberBaru(this)">+ Daftarkan</button>
+            </div>
           </div>
           <div class="card">
-            <h3>Item Manual</h3>
-            <input type="text" id="manualItemName" placeholder="Nama Item (cth: Biaya Antar)">
-            <input type="number" id="manualItemPrice" placeholder="Harga">
-            <button onclick="tambahItemManual()">+ Tambah Item</button>
+            <button onclick="toggleForm('manualItemFormContainer')" style="background-color: #6c757d;">+ Tambah Item Manual</button>
+            <div id="manualItemFormContainer" class="hidden" style="margin-top: 15px;">
+              <h3>Form Item Manual</h3>
+              <input type="text" id="manualItemName" placeholder="Nama Item (cth: Biaya Antar)">
+              <input type="number" id="manualItemPrice" placeholder="Harga">
+              <button onclick="tambahItemManual()">+ Tambah</button>
+            </div>
           </div>
           <div class="card" id="keranjangCard">
             <h3>Keranjang Belanja</h3>
-            <input type="text" id="memberId" placeholder="ID Member (No. HP)">
-            <button id="btnTerapkanDiskon" onclick="terapkanDiskon()">Terapkan Diskon</button>
+            <button onclick="toggleForm('diskonFormContainer')" style="background-color: #6c757d;">Gunakan Diskon Member</button>
+            <div id="diskonFormContainer" class="hidden" style="margin-top: 15px; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px;">
+              <input type="text" id="memberId" placeholder="ID Member (No. HP)">
+              <button id="btnTerapkanDiskon" onclick="terapkanDiskon(this)">Terapkan Diskon</button>
+            </div>
             <div id="cartItems">Tidak ada item.</div>
             <div class="total-section">
               <div id="subtotalLine"><span>Subtotal:</span> <span id="subtotalHarga">Rp 0</span></div>
@@ -137,7 +177,7 @@
               <hr>
               <div><span>Total:</span> <span id="totalHarga">Rp 0</span></div>
             </div>
-            <button id="btnSelesaikanTransaksi" onclick="tampilkanPembayaran()">Lanjut ke Pembayaran</button>
+            <button id="btnSelesaikanTransaksi" class="hidden" onclick="tampilkanPembayaran()">Lanjut ke Pembayaran</button>
           </div>
           <div class="card hidden" id="paymentCard">
             <h3>Detail Pembayaran</h3>
@@ -155,13 +195,13 @@
                 <option value="QRIS">QRIS</option> <option value="Shopee">Shopee</option> <option value="Tokopedia">Tokopedia</option> <option value="Transfer">Transfer</option>
               </select>
             </div>
-            <button id="btnKonfirmasiPembayaran" onclick="selesaikanTransaksi()">Konfirmasi & Simpan</button>
+            <button id="btnKonfirmasiPembayaran" onclick="selesaikanTransaksi(this)">Konfirmasi & Simpan</button>
             <button style="background-color: #6c757d;" onclick="batalPembayaran()">Kembali ke Keranjang</button>
           </div>
           <div class="card hidden" id="postTransactionCard">
             <h4>Transaksi Berhasil!</h4>
+            <p style="text-align:center; color:#555; font-size: 14px;">Kembali ke kasir...</p>
             <button id="btnCetakStruk" onclick="cetakStruk()">Cetak Struk</button>
-            <button style="background-color: #007bff;" onclick="kembaliKeHalamanAwal()">Kembali ke Halaman Awal</button>
           </div>
         </div>
       </div>
@@ -169,25 +209,52 @@
     
     <div class="container hidden" id="laporanPage">
        <div class="card">
-        <h3 id="laporanTitle">Laporan Penjualan Hari Ini</h3>
-        <p><small>(Data diperbarui setiap ada transaksi baru)</small></p>
-        <div id="reportLoader">Memuat laporan...</div>
-        <div id="reportContent" class="hidden"><!-- Konten Laporan akan diisi oleh Javascript --></div>
-      </div>
+         <h3 id="laporanTitle">Laporan Penjualan Hari Ini</h3>
+         <p><small>(Data diperbarui setiap ada transaksi baru)</small></p>
+         <div id="reportLoader">Memuat laporan...</div>
+         <div id="reportContent" class="hidden"></div>
+         <div id="detailDropdownContainer"></div>
+       </div>
     </div>
   </div>
   
-  <div id="strukArea"><!-- Konten Struk akan diisi oleh Javascript --></div>
+  <div id="strukArea"></div>
 
   <script>
-    let semuaProduk = [], keranjang = [], lastTransactionId = null, currentUser = null;
-    let currentPage = 1;
-    const itemsPerPage = 12;
-    let isMemberActive = false;
+    var semuaProduk = [], keranjang = [], currentUser = null;
+    var currentPage = 1;
+    var itemsPerPage = 6;
+    var isMemberActive = false;
+    var lastTransactionData = {};
+
+    function toggleTheme() {
+      var body = document.body;
+      body.classList.toggle('dark-mode');
+      var theme = body.classList.contains('dark-mode') ? 'dark' : 'light';
+      localStorage.setItem('theme', theme);
+      document.getElementById('theme-toggle').textContent = theme === 'dark' ? '🌙' : '☀️';
+    }
+
+    function toggleForm(elementId) {
+      document.getElementById(elementId).classList.toggle('hidden');
+    }
+
+    // PERBAIKAN FINAL: Fungsi untuk menampilkan/menyembunyikan form Nego
+    function toggleNegoForm(index, show) {
+        var btn = document.getElementById('nego-btn-' + index);
+        var form = document.getElementById('price-control-' + index);
+        if (show) {
+            btn.classList.add('hidden');
+            form.classList.remove('hidden');
+        } else {
+            btn.classList.remove('hidden');
+            form.classList.add('hidden');
+        }
+    }
 
     window.onload = function() { 
       try {
-        const savedUser = localStorage.getItem('currentUser'); 
+        var savedUser = localStorage.getItem('currentUser'); 
         if (savedUser) { 
           setupApp(JSON.parse(savedUser)); 
         } 
@@ -195,7 +262,26 @@
         console.error("Gagal memuat sesi:", e);
         localStorage.removeItem('currentUser');
       }
+      
+      var savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        document.getElementById('theme-toggle').textContent = '🌙';
+      } else {
+        document.getElementById('theme-toggle').textContent = '☀️';
+      }
     };
+
+    function login() {
+      var email = document.getElementById('emailInput').value;
+      if (!email) {
+        alert('Email tidak boleh kosong.');
+        return;
+      }
+      google.script.run.withSuccessHandler(hasilLogin).withFailureHandler(function() {
+        alert('Gagal terhubung ke server.');
+      }).cekLogin(email);
+    }
     
     function logout() { 
       if (confirm("Apakah Anda yakin ingin logout?")) {
@@ -206,14 +292,13 @@
 
     function setupApp(user) { 
       currentUser = user; 
-      document.getElementById('userInfo').innerHTML = `<span>Kasir: ${currentUser.email} | Cabang: ${currentUser.cabang}</span> <a href="#" onclick="logout(); return false;">Logout</a>`; 
+      document.getElementById('userInfo').innerHTML = '<span>Kasir: ' + currentUser.email + ' | Cabang: ' + currentUser.cabang + '</span> <a href="#" onclick="logout(); return false;">Logout</a>'; 
       document.getElementById('loginPage').classList.add('hidden'); 
       document.getElementById('appContainer').classList.remove('hidden'); 
       muatProduk(); 
     }
     
     function hasilLogin(res) { 
-      console.log("Respons dari server:", res);
       if (res && res.success) { 
         localStorage.setItem('currentUser', JSON.stringify(res.user)); 
         setupApp(res.user); 
@@ -222,90 +307,109 @@
       } 
     }
     
-    // FUNGSI INTI YANG DIPERBAIKI (HARDENING)
+    function muatProduk() {
+      google.script.run.withSuccessHandler(tampilkanProduk).withFailureHandler(function() {
+        alert('Gagal memuat produk.');
+      }).getProduk();
+    }
+
     function tampilkanProduk(data) {
-        if (!data || !Array.isArray(data)) {
-            alert("Gagal memuat data produk atau format data salah. Cek sheet 'Produk'.");
-            document.getElementById('loader').textContent = "Error: Data Produk Tidak Valid.";
-            return;
+      if (!data || !Array.isArray(data)) {
+        alert("Gagal memuat data produk atau format data salah. Cek sheet 'Produk'.");
+        document.getElementById('loader').textContent = "Error: Data Produk Tidak Valid.";
+        return;
+      }
+      semuaProduk = data; 
+      var container = document.getElementById('produkList');
+      var filterSelect = document.getElementById('categorySelect');
+      container.innerHTML = '';
+      filterSelect.innerHTML = '';
+      
+      var categories = ['Semua'];
+      var categorySet = new Set(data.map(function(p) { return p && p['Jenis']; }).filter(Boolean));
+      categories = categories.concat(Array.from(categorySet));
+      
+      categories.forEach(function(category) {
+        var option = document.createElement('option');
+        option.value = category;
+        option.textContent = category;
+        filterSelect.appendChild(option);
+      });
+
+      data.forEach(function(p, index) { 
+        try {
+          if (!p || !p['Nama Produk']) {
+            console.warn('Data produk di baris spreadsheet ' + (index + 2) + ' tidak valid, dilewati.');
+            return; 
+          }
+          var div = document.createElement('div'); 
+          div.className = 'product-card';
+          div.dataset.jenis = p['Jenis'] || ''; 
+          div.dataset.index = index;
+          div.style.display = 'none';
+          
+          var hargaJual = parseInt(p['Harga Jual']) || 0;
+          var hargaMember = parseInt(p['Harga Member']) || 0;
+          var hargaModal = parseInt(p['Harga Modal']) || 0;
+          var supplier = p['Supplier'] || 'Tidak ada'; 
+
+          div.innerHTML = 
+            '<img src="' + (p['Foto URL'] || 'https://placehold.co/100x100/e2e8f0/e2e8f0?text=x') + '" alt="' + p['Nama Produk'] + '" onerror="this.onerror=null;this.src=\'https://placehold.co/100x100/e2e8f0/e2e8f0?text=x\';">' +
+            '<p>' + p['Nama Produk'] + ' (' + (p['Ukuran/Variasi'] || '') + ')</p>' +
+            '<p><strong>Rp ' + hargaJual.toLocaleString() + '</strong></p>' +
+            '<div class="product-admin-info hidden">' +
+            '  <small>Modal: Rp ' + hargaModal.toLocaleString() + '<br>' +
+            '  <strong>Member: Rp ' + hargaMember.toLocaleString() + '</strong><br>' +
+            '  Supplier: ' + supplier + '</small>' +
+            '</div>' +
+            '<button class="btn-small" onclick="tambahKeKeranjang(' + index + ')">+ Keranjang</button>';
+          container.appendChild(div); 
+        } catch (e) {
+          console.error('Error saat memproses produk di baris spreadsheet ' + (index + 2) + ':', p, e);
         }
-        semuaProduk = data; 
-        const container = document.getElementById('produkList');
-        const filterSelect = document.getElementById('categorySelect');
-        container.innerHTML = '';
-        filterSelect.innerHTML = '';
-        
-        const categories = ['Semua', ...new Set(data.map(p => p && p['Jenis']).filter(Boolean))];
-        
-        categories.forEach(category => {
-          const option = document.createElement('option');
-          option.value = category;
-          option.textContent = category;
-          filterSelect.appendChild(option);
-        });
-
-        data.forEach((p, index) => { 
-            try {
-                if (!p || !p['Nama Produk']) {
-                    console.warn(`Data produk di baris spreadsheet ${index + 2} tidak valid (nama kosong), dilewati.`);
-                    return; 
-                }
-                const div = document.createElement('div'); 
-                div.className = 'product-card';
-                div.dataset.jenis = p['Jenis'] || ''; 
-                div.dataset.index = index;
-                div.style.display = 'none';
-                
-                const hargaJual = parseInt(p['Harga Jual']) || 0;
-                const hargaMember = parseInt(p['Harga Member']) || 0;
-                const hargaModal = parseInt(p['Harga Modal']) || 0;
-                const supplier = p['Supplier'] || 'Tidak ada'; 
-
-                div.innerHTML = `
-                    <img src="${p['Foto URL'] || 'https://placehold.co/100x100/e2e8f0/e2e8f0?text=x'}" alt="${p['Nama Produk']}" onerror="this.onerror=null;this.src='https://placehold.co/100x100/e2e8f0/e2e8f0?text=x';">
-                    <p>${p['Nama Produk']} (${p['Ukuran/Variasi'] || ''})</p>
-                    <p><strong>Rp ${hargaJual.toLocaleString()}</strong></p>
-                    <div class="product-admin-info hidden">
-                        <small>Modal: Rp ${hargaModal.toLocaleString()}<br>
-                        <strong>Member: Rp ${hargaMember.toLocaleString()}</strong><br>
-                        Supplier: ${supplier}</small> 
-                    </div>
-                    <button class="btn-small" onclick="tambahKeKeranjang(${index})">+ Keranjang</button>
-                `; 
-                container.appendChild(div); 
-            } catch (e) {
-                console.error(`Error saat memproses produk di baris spreadsheet ${index + 2}:`, p, e);
-            }
-        }); 
-        
-        document.getElementById('loader').classList.add('hidden'); 
-        document.getElementById('mainContent').classList.remove('hidden'); 
-        toggleInfoModalView();
-        updateProductView();
+      }); 
+      
+      document.getElementById('loader').classList.add('hidden'); 
+      document.getElementById('mainContent').classList.remove('hidden'); 
+      toggleInfoModalView();
+      updateProductView();
     }
 
     function tambahKeKeranjang(index) {
-      const produk = semuaProduk[index];
-      const itemAda = keranjang.find(item => item.produk['ID Produk'] === produk['ID Produk'] && item.produk['Ukuran/Variasi'] === produk['Ukuran/Variasi']);
-      const hargaJual = parseInt(produk['Harga Jual']) || 0;
-      const hargaMember = parseInt(produk['Harga Member']) || 0;
-      const hargaEfektif = (isMemberActive && hargaMember > 0 && hargaMember < hargaJual) ? hargaMember : hargaJual;
-      if (itemAda) { itemAda.qty++; } else { keranjang.push({ produk: produk, qty: 1, hargaSaatIni: hargaEfektif, type: 'produk' }); }
+      var produk = semuaProduk[index];
+      var itemAda = keranjang.find(function(item) {
+        return item.produk['ID Produk'] === produk['ID Produk'] && item.produk['Ukuran/Variasi'] === produk['Ukuran/Variasi'];
+      });
+      var hargaJual = parseInt(produk['Harga Jual']) || 0;
+      var hargaMember = parseInt(produk['Harga Member']) || 0;
+      var hargaEfektif = (isMemberActive && hargaMember > 0 && hargaMember < hargaJual) ? hargaMember : hargaJual;
+      if (itemAda) { 
+        itemAda.qty++; 
+      } else { 
+        keranjang.push({ produk: produk, qty: 1, hargaSaatIni: hargaEfektif }); 
+      }
       updateKeranjang();
     }
     
     function ubahJumlah(index, amount) {
-      const item = keranjang[index];
-      if (item) { item.qty += amount; if (item.qty <= 0) { hapusItem(index); } else { updateKeranjang(); } }
+      var item = keranjang[index];
+      if (item) {
+        item.qty += amount;
+        if (item.qty <= 0) {
+          hapusItem(index);
+        } else {
+          updateKeranjang();
+        }
+      }
     }
 
     function ubahHarga(inputElement, index) {
-      const item = keranjang[index];
+      var item = keranjang[index];
       if (item) {
-        const newPrice = parseInt(inputElement.value);
+        var newPrice = parseInt(inputElement.value);
         if (isNaN(newPrice) || newPrice < 0) {
-          const hargaJual = parseInt(item.produk['Harga Jual']) || 0;
-          const hargaMember = parseInt(item.produk['Harga Member']) || 0;
+          var hargaJual = parseInt(item.produk['Harga Jual']) || 0;
+          var hargaMember = parseInt(item.produk['Harga Member']) || 0;
           item.hargaSaatIni = (isMemberActive && hargaMember > 0 && hargaMember < hargaJual) ? hargaMember : hargaJual;
         } else {
           item.hargaSaatIni = newPrice;
@@ -314,36 +418,57 @@
       }
     }
     
+    function setJumlah(inputElement, index) {
+      var item = keranjang[index];
+      if (item) {
+        var newQuantity = parseInt(inputElement.value);
+        if (isNaN(newQuantity) || newQuantity <= 0) {
+          hapusItem(index);
+        } else {
+          item.qty = newQuantity;
+          updateKeranjang();
+        }
+      }
+    }
+    
+    function hapusItem(index) {
+      keranjang.splice(index, 1);
+      updateKeranjang();
+    }
+
     function updateKeranjang() {
-      const container = document.getElementById('cartItems');
+      var container = document.getElementById('cartItems');
       if (keranjang.length === 0) {
         container.innerHTML = 'Tidak ada item.';
         document.getElementById('btnSelesaikanTransaksi').classList.add('hidden');
       } else {
         container.innerHTML = '';
-        keranjang.forEach((item, i) => {
-          const div = document.createElement('div');
+        keranjang.forEach(function(item, i) {
+          var div = document.createElement('div');
           div.className = 'cart-item';
-          div.innerHTML = `
-            <div class="cart-item-details">
-              <div class="cart-item-info">
-                ${item.produk['Nama Produk']} (${item.produk['Ukuran/Variasi']})<br>
-                <strong>Rp ${(item.qty * item.hargaSaatIni).toLocaleString()}</strong>
-              </div>
-              <button class="btn-remove" onclick="hapusItem(${i})">&times;</button>
-            </div>
-            <div class="cart-controls">
-              <div class="quantity-controls">
-                <button onclick="ubahJumlah(${i}, -1)">-</button>
-                <input type="number" value="${item.qty}" onchange="setJumlah(this, ${i})">
-                <button onclick="ubahJumlah(${i}, 1)">+</button>
-              </div>
-              <div class="price-control">
-                <span>Rp</span>
-                <input type="number" value="${item.hargaSaatIni}" onchange="ubahHarga(this, ${i})">
-              </div>
-            </div>
-          `;
+          var totalItem = item.qty * item.hargaSaatIni;
+          // PERBAIKAN FINAL: Struktur HTML baru yang lebih ringkas dan responsif
+          div.innerHTML = 
+            '<div class="cart-item-details">' +
+            '  <div class="cart-item-info">' +
+                 item.produk['Nama Produk'] + ' (' + (item.produk['Ukuran/Variasi'] || '') + ')<br>' +
+            '    <strong>' + item.qty + ' x ' + item.hargaSaatIni.toLocaleString() + ' = Rp ' + totalItem.toLocaleString() + '</strong>' +
+            '  </div>' +
+            '  <button class="btn-remove" onclick="hapusItem(' + i + ')">&times;</button>' +
+            '</div>' +
+            '<div class="cart-controls">' +
+            '  <div class="quantity-controls">' +
+            '    <button onclick="ubahJumlah(' + i + ', -1)">-</button>' +
+            '    <input type="number" value="' + item.qty + '" onchange="setJumlah(this, ' + i + ')">' +
+            '    <button onclick="ubahJumlah(' + i + ', 1)">+</button>' +
+            '  </div>' +
+            '  <button id="nego-btn-' + i + '" class="btn-small" style="background-color: #ffc107; color: #333;" onclick="toggleNegoForm(' + i + ', true)">Nego</button>' +
+            '  <div id="price-control-' + i + '" class="price-control hidden">' +
+            '    <span>Rp</span>' +
+            '    <input type="number" value="' + item.hargaSaatIni + '" onchange="ubahHarga(this, ' + i + ')">' +
+            '    <button class="btn-small" style="background-color: #28a745;" onclick="toggleNegoForm(' + i + ', false)">OK</button>' +
+            '  </div>' +
+            '</div>';
           container.appendChild(div);
         });
         document.getElementById('btnSelesaikanTransaksi').classList.remove('hidden');
@@ -351,34 +476,435 @@
       kalkulasiTotal();
     }
     
-    // --- (Sisa kode tidak banyak berubah) ---
-    function setJumlah(inputElement, index) { const item = keranjang[index]; if (item) { const newQuantity = parseInt(inputElement.value); if (isNaN(newQuantity) || newQuantity <= 0) { hapusItem(index); } else { item.qty = newQuantity; updateKeranjang(); } } }
-    function muatLaporan() { if (!currentUser) return; document.getElementById('reportLoader').classList.remove('hidden'); document.getElementById('reportContent').innerHTML = ''; google.script.run.withSuccessHandler(tampilkanDataLaporan).withFailureHandler(gagalMuatLaporan).getLaporanHarian({ role: currentUser.role, cabang: currentUser.cabang }); }
-    function tampilkanDataLaporan(data) { if (data.error) { gagalMuatLaporan(data.error); return; } const reportContent = document.getElementById('reportContent'); reportContent.innerHTML = ''; let grandTotal = 0; let grandTransaksi = 0; data.reports.forEach(report => { const reportHTML = `<div class="report-card"><h4>Laporan Cabang: ${report.cabang}</h4><div class="report-grid"><div class="report-card"><h4>Total Penjualan</h4><p>Rp ${report.totalPenjualan.toLocaleString()}</p></div><div class="report-card"><h4>Jumlah Transaksi</h4><p>${report.jumlahTransaksi}</p></div><div class="report-card"><h4>Penjualan Tunai</h4><p>Rp ${report.totalTunai.toLocaleString()}</p></div><div class="report-card"><h4>Penjualan Non-Tunai</h4><p>Rp ${report.totalNonTunai.toLocaleString()}</p></div></div></div>`; reportContent.innerHTML += reportHTML; grandTotal += report.totalPenjualan; grandTransaksi += report.jumlahTransaksi; }); if (currentUser.role === 'Admin' && data.reports.length > 1) { document.getElementById('laporanTitle').textContent = 'Laporan Gabungan Semua Cabang'; const grandTotalHTML = `<div class="report-grand-total"><h3>Total Keseluruhan (Semua Cabang)</h3><h4>Total Pemasukan: Rp ${grandTotal.toLocaleString()}</h4><h4>Total Transaksi: ${grandTransaksi}</h4></div>`; reportContent.innerHTML += grandTotalHTML; } else if (currentUser.role === 'Kasir' || data.reports.length === 1) { document.getElementById('laporanTitle').textContent = `Laporan Penjualan Hari Ini (${currentUser.cabang})`; } document.getElementById('reportLoader').classList.add('hidden'); reportContent.classList.remove('hidden'); }
-    function kembaliKeHalamanAwal() { document.getElementById('postTransactionCard').classList.add('hidden'); document.getElementById('keranjangCard').classList.remove('hidden'); resetKeranjang(); filterByCategory('Semua'); }
-    function hasilCekMember(res) { const btn = document.getElementById('btnTerapkanDiskon'); if (res.success) { alert(`Harga member untuk ${res.nama} berhasil diterapkan.`); isMemberActive = true; btn.textContent = 'Harga Member Aktif'; btn.classList.add('disabled'); btn.disabled = true; } else { alert(res.message); isMemberActive = false; btn.textContent = 'Terapkan Diskon'; btn.disabled = false; } updateKeranjang(); }
-    function kalkulasiTotal() { let subtotal = 0; let subtotalNormal = 0; keranjang.forEach(item => { const hargaJualNormal = parseInt(item.produk['Harga Jual']) || 0; subtotal += item.qty * item.hargaSaatIni; subtotalNormal += item.qty * hargaJualNormal; }); document.getElementById('subtotalHarga').textContent = `Rp ${subtotalNormal.toLocaleString()}`; document.getElementById('subtotalLine').classList.toggle('hidden', keranjang.length === 0); const penghematan = subtotalNormal - subtotal; if (penghematan > 0) { document.getElementById('diskonLine').classList.remove('hidden'); document.getElementById('nilaiDiskon').textContent = `- Rp ${penghematan.toLocaleString()}`; } else { document.getElementById('diskonLine').classList.add('hidden'); } document.getElementById('totalHarga').textContent = `Rp ${subtotal.toLocaleString()}`; return { totalAkhir: subtotal, totalHemat: penghematan }; }
-    function selesaikanTransaksi() { const metode = document.querySelector('input[name="metodePembayaran"]:checked').value; let detailMetode = (metode === 'Non-Tunai') ? document.getElementById('jenisNonTunai').value : ''; const totalInfo = kalkulasiTotal(); const dataTransaksi = { items: keranjang.map(item => ({ produk: item.produk, qty: item.qty, hargaAkhirSatuan: item.hargaSaatIni })), memberId: document.getElementById('memberId').value, metodePembayaran: metode, detailMetode: detailMetode, diskonJumlah: totalInfo.totalHemat, totalAkhir: totalInfo.totalAkhir, timestamp: new Date().toISOString(), cabang: currentUser.cabang }; const btnKonfirmasi = document.getElementById('btnKonfirmasiPembayaran'); btnKonfirmasi.disabled = true; btnKonfirmasi.textContent = 'Menyimpan...'; google.script.run.withSuccessHandler(onTransaksiSuccess).withFailureHandler(onTransaksiFailure).simpanTransaksi(dataTransaksi); }
-    function resetKeranjang() { keranjang = []; isMemberActive = false; document.getElementById('memberId').value = ''; const btnDiskon = document.getElementById('btnTerapkanDiskon'); btnDiskon.textContent = 'Terapkan Diskon'; btnDiskon.disabled = false; btnDiskon.classList.remove('disabled'); updateKeranjang(); }
-    function tampilkanHalaman(halaman) { const posPage = document.getElementById('posPage'); const laporanPage = document.getElementById('laporanPage'); const navKasir = document.getElementById('navKasir'); const navLaporan = document.getElementById('navLaporan'); if (halaman === 'laporan') { posPage.classList.add('hidden'); laporanPage.classList.remove('hidden'); navKasir.classList.remove('active'); navLaporan.classList.add('active'); muatLaporan(); } else { laporanPage.classList.add('hidden'); posPage.classList.remove('hidden'); navLaporan.classList.remove('active'); navKasir.classList.add('active'); } }
-    function gagalMuatLaporan(error) { const loader = document.getElementById('reportLoader'); loader.textContent = 'Gagal memuat laporan: ' + error.toString(); }
-    function toggleInfoModalView() { const isChecked = document.getElementById('toggleInfoModal').checked; const adminInfoElements = document.querySelectorAll('.product-admin-info'); adminInfoElements.forEach(el => { el.classList.toggle('hidden', !isChecked); }); }
-    function login() { const email = document.getElementById('emailInput').value; if (!email) { alert('Email tidak boleh kosong.'); return; } google.script.run.withSuccessHandler(hasilLogin).withFailureHandler(() => alert('Gagal terhubung ke server.')).cekLogin(email); }
-    function muatProduk() { google.script.run.withSuccessHandler(tampilkanProduk).withFailureHandler(() => alert('Gagal memuat produk.')).getProduk(); }
-    function tambahItemManual() { const name = document.getElementById('manualItemName').value; const price = parseInt(document.getElementById('manualItemPrice').value); if (name && price > 0) { const manualProduct = { 'ID Produk': 'MANUAL-' + Date.now(), 'Nama Produk': name, 'Ukuran/Variasi': 'Custom', 'Harga Jual': price, 'Harga Member': price, 'Harga Modal': 0, 'Supplier': 'Internal' }; keranjang.push({ produk: manualProduct, qty: 1, hargaSaatIni: price, type: 'manual' }); updateKeranjang(); document.getElementById('manualItemName').value = ''; document.getElementById('manualItemPrice').value = ''; } else { alert('Nama item dan harga manual harus diisi.'); } }
-    function hapusItem(index) { keranjang.splice(index, 1); updateKeranjang(); }
-    function filterByCategory(jenis) { document.getElementById('categorySelect').value = jenis; currentPage = 1; updateProductView(); }
-    function updateProductView() { const activeCategory = document.getElementById('categorySelect').value; const searchTerm = document.getElementById('searchInput').value.toLowerCase(); const allCards = document.querySelectorAll('.product-card'); const filteredCards = Array.from(allCards).filter(card => { const cardCategory = card.dataset.jenis; const cardText = card.innerText.toLowerCase(); const isCategoryMatch = (activeCategory === 'Semua' || cardCategory === activeCategory); const isSearchMatch = cardText.includes(searchTerm); return isCategoryMatch && isSearchMatch; }); allCards.forEach(card => card.style.display = 'none'); const totalPages = Math.ceil(filteredCards.length / itemsPerPage); const startIndex = (currentPage - 1) * itemsPerPage; const endIndex = startIndex + itemsPerPage; const pageCards = filteredCards.slice(startIndex, endIndex); pageCards.forEach(card => card.style.display = 'block'); updatePaginationControls(totalPages); }
-    function updatePaginationControls(totalPages) { const controls = document.getElementById('paginationControls'); const prevBtn = document.getElementById('prevPageBtn'); const nextBtn = document.getElementById('nextPageBtn'); const pageInfo = document.getElementById('pageInfo'); if (totalPages > 1) { controls.classList.remove('hidden'); pageInfo.textContent = `Halaman ${currentPage} dari ${totalPages}`; prevBtn.disabled = (currentPage === 1); nextBtn.disabled = (currentPage === totalPages); } else { controls.classList.add('hidden'); } }
-    function changePage(direction) { currentPage += direction; updateProductView(); }
-    function tampilkanPembayaran() { if (keranjang.length === 0) { alert('Keranjang kosong.'); return; } const totalInfo = kalkulasiTotal(); document.getElementById('paymentTotalTagihan').textContent = `Rp ${totalInfo.totalAkhir.toLocaleString()}`; document.getElementById('keranjangCard').classList.add('hidden'); document.getElementById('paymentCard').classList.remove('hidden'); hitungKembalian(); }
-    function batalPembayaran() { document.getElementById('paymentCard').classList.add('hidden'); document.getElementById('keranjangCard').classList.remove('hidden'); }
-    function togglePaymentDetails() { const selectedMethod = document.querySelector('input[name="metodePembayaran"]:checked').value; document.getElementById('tunaiDetails').classList.toggle('hidden', selectedMethod !== 'Tunai'); document.getElementById('nonTunaiDetails').classList.toggle('hidden', selectedMethod === 'Tunai'); }
-    function hitungKembalian() { const totalInfo = kalkulasiTotal(); const uangDiterima = parseInt(document.getElementById('uangDiterima').value) || 0; const kembalian = uangDiterima - totalInfo.totalAkhir; document.getElementById('kembalian').textContent = `Rp ${kembalian >= 0 ? kembalian.toLocaleString() : 0}`; }
-    function onTransaksiSuccess(response) { if (response === "Sukses") { alert("Transaksi berhasil disimpan!"); document.getElementById('paymentCard').classList.add('hidden'); document.getElementById('postTransactionCard').classList.remove('hidden'); } else { alert("Gagal menyimpan transaksi: " + response); } const btnKonfirmasi = document.getElementById('btnKonfirmasiPembayaran'); btnKonfirmasi.disabled = false; btnKonfirmasi.textContent = 'Konfirmasi & Simpan'; }
-    function onTransaksiFailure(error) { alert("Terjadi kesalahan saat menyimpan transaksi: " + error.message); const btnKonfirmasi = document.getElementById('btnKonfirmasiPembayaran'); btnKonfirmasi.disabled = false; btnKonfirmasi.textContent = 'Konfirmasi & Simpan'; }
-    function cetakStruk() { window.print(); }
-    function transaksiBaru() { document.getElementById('postTransactionCard').classList.add('hidden'); document.getElementById('keranjangCard').classList.remove('hidden'); resetKeranjang(); }
+    function kalkulasiTotal() {
+      var subtotal = 0;
+      var subtotalNormal = 0;
+      keranjang.forEach(function(item) {
+        var hargaJualNormal = parseInt(item.produk['Harga Jual']) || 0;
+        subtotal += item.qty * item.hargaSaatIni;
+        subtotalNormal += item.qty * hargaJualNormal;
+      });
+      document.getElementById('subtotalHarga').textContent = 'Rp ' + subtotalNormal.toLocaleString();
+      document.getElementById('subtotalLine').classList.toggle('hidden', keranjang.length === 0);
+      var penghematan = subtotalNormal - subtotal;
+      if (penghematan > 0) {
+        document.getElementById('diskonLine').classList.remove('hidden');
+        document.getElementById('nilaiDiskon').textContent = '- Rp ' + penghematan.toLocaleString();
+      } else {
+        document.getElementById('diskonLine').classList.add('hidden');
+      }
+      document.getElementById('totalHarga').textContent = 'Rp ' + subtotal.toLocaleString();
+      return { totalAkhir: subtotal, totalHemat: penghematan };
+    }
+    
+    function terapkanDiskon(btn) {
+      var nomorHp = document.getElementById('memberId').value;
+      if (!nomorHp) {
+        alert('Silakan masukkan nomor HP member.');
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = 'Mengecek...';
+      google.script.run.withSuccessHandler(function(res) {
+        if (res.success) {
+          alert('Harga member untuk ' + res.nama + ' berhasil diterapkan.');
+          isMemberActive = true;
+          btn.textContent = 'Harga Member Aktif';
+          btn.classList.add('disabled');
+        } else {
+          alert(res.message);
+          isMemberActive = false;
+          btn.disabled = false;
+          btn.textContent = 'Terapkan Diskon';
+        }
+        updateKeranjang();
+      }).withFailureHandler(function() {
+        alert('Gagal menghubungi server untuk cek member.');
+        btn.disabled = false;
+        btn.textContent = 'Terapkan Diskon';
+      }).cekMember(nomorHp);
+    }
+
+    function daftarkanMemberBaru(btn) {
+      var nama = document.getElementById('newMemberName').value;
+      var nomorHp = document.getElementById('newMemberHp').value;
+      if (!nama || !nomorHp) {
+        alert('Nama dan Nomor HP tidak boleh kosong.');
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = 'Mendaftarkan...';
+      var dataMember = { nama: nama, nomorHp: nomorHp };
+      google.script.run.withSuccessHandler(function(res) {
+        alert(res.message);
+        btn.disabled = false;
+        btn.textContent = '+ Daftarkan';
+        if (res.success) {
+          document.getElementById('newMemberName').value = '';
+          document.getElementById('newMemberHp').value = '';
+          toggleForm('memberFormContainer'); // Tutup form setelah sukses
+        }
+      }).withFailureHandler(function() {
+        alert('Gagal menghubungi server untuk mendaftarkan member.');
+        btn.disabled = false;
+        btn.textContent = '+ Daftarkan';
+      }).tambahMemberBaru(dataMember);
+    }
+
+    function tambahItemManual() {
+      var name = document.getElementById('manualItemName').value;
+      var price = parseInt(document.getElementById('manualItemPrice').value);
+      if (name && price > 0) {
+        var manualProduct = {
+          'ID Produk': 'MANUAL-' + Date.now(),
+          'Nama Produk': name,
+          'Ukuran/Variasi': 'Custom',
+          'Harga Jual': price,
+          'Harga Member': price,
+          'Harga Modal': 0,
+          'Supplier': 'Internal'
+        };
+        keranjang.push({ produk: manualProduct, qty: 1, hargaSaatIni: price });
+        updateKeranjang();
+        document.getElementById('manualItemName').value = '';
+        document.getElementById('manualItemPrice').value = '';
+        toggleForm('manualItemFormContainer'); // Tutup form setelah sukses
+      } else {
+        alert('Nama item dan harga manual harus diisi.');
+      }
+    }
+    
+    function tampilkanPembayaran() {
+      if (keranjang.length === 0) {
+        alert('Keranjang kosong.');
+        return;
+      }
+      var totalInfo = kalkulasiTotal();
+      document.getElementById('paymentTotalTagihan').textContent = 'Rp ' + totalInfo.totalAkhir.toLocaleString();
+      document.getElementById('keranjangCard').classList.add('hidden');
+      document.getElementById('paymentCard').classList.remove('hidden');
+      hitungKembalian();
+    }
+    
+    function batalPembayaran() {
+      document.getElementById('paymentCard').classList.add('hidden');
+      document.getElementById('keranjangCard').classList.remove('hidden');
+    }
+    
+    function togglePaymentDetails() {
+      var selectedMethod = document.querySelector('input[name="metodePembayaran"]:checked').value;
+      document.getElementById('tunaiDetails').classList.toggle('hidden', selectedMethod !== 'Tunai');
+      document.getElementById('nonTunaiDetails').classList.toggle('hidden', selectedMethod === 'Tunai');
+    }
+    
+    function hitungKembalian() {
+      var totalInfo = kalkulasiTotal();
+      var uangDiterima = parseInt(document.getElementById('uangDiterima').value) || 0;
+      var kembalian = uangDiterima - totalInfo.totalAkhir;
+      document.getElementById('kembalian').textContent = 'Rp ' + (kembalian >= 0 ? kembalian.toLocaleString() : 0);
+    }
+    
+    function selesaikanTransaksi(btn) {
+      var metode = document.querySelector('input[name="metodePembayaran"]:checked').value;
+      var detailMetode = (metode === 'Non-Tunai') ? document.getElementById('jenisNonTunai').value : '';
+      var totalInfo = kalkulasiTotal();
+      var dataTransaksi = {
+        items: keranjang.map(function(item) {
+          return { produk: item.produk, qty: item.qty, hargaAkhirSatuan: item.hargaSaatIni };
+        }),
+        memberId: document.getElementById('memberId').value,
+        metodePembayaran: metode,
+        detailMetode: detailMetode,
+        diskonJumlah: totalInfo.totalHemat,
+        totalAkhir: totalInfo.totalAkhir,
+        timestamp: new Date().toISOString(),
+        cabang: currentUser.cabang
+      };
+
+      lastTransactionData = dataTransaksi; // Simpan data untuk struk
+      btn.disabled = true;
+      btn.textContent = 'Menyimpan...';
+      google.script.run.withSuccessHandler(onTransaksiSuccess).withFailureHandler(onTransaksiFailure).simpanTransaksi(dataTransaksi);
+    }
+    
+    function onTransaksiSuccess(response) {
+      var btnKonfirmasi = document.getElementById('btnKonfirmasiPembayaran');
+      if (response === "Sukses") {
+        document.getElementById('paymentCard').classList.add('hidden');
+        document.getElementById('postTransactionCard').classList.remove('hidden');
+        generateStruk(); // Generate struk in the background
+
+        // Automatically return to the main page after 2.5 seconds
+        setTimeout(function() {
+            kembaliKeHalamanAwal();
+        }, 2500); 
+
+      } else {
+        alert("Gagal menyimpan transaksi: " + response);
+      }
+      // Reset the confirmation button regardless of outcome
+      btnKonfirmasi.disabled = false;
+      btnKonfirmasi.textContent = 'Konfirmasi & Simpan';
+    }
+    
+    function onTransaksiFailure(error) {
+      alert("Terjadi kesalahan saat menyimpan transaksi: " + error.message);
+      var btnKonfirmasi = document.getElementById('btnKonfirmasiPembayaran');
+      btnKonfirmasi.disabled = false;
+      btnKonfirmasi.textContent = 'Konfirmasi & Simpan';
+    }
+    
+    function kembaliKeHalamanAwal() {
+      document.getElementById('postTransactionCard').classList.add('hidden');
+      document.getElementById('keranjangCard').classList.remove('hidden');
+      resetKeranjang();
+      filterByCategory('Semua');
+    }
+
+    function resetKeranjang() {
+      keranjang = [];
+      isMemberActive = false;
+      lastTransactionData = {};
+      document.getElementById('memberId').value = '';
+      var btnDiskon = document.getElementById('btnTerapkanDiskon');
+      btnDiskon.textContent = 'Terapkan Diskon';
+      btnDiskon.disabled = false;
+      btnDiskon.classList.remove('disabled');
+      updateKeranjang();
+    }
+    
+    function generateStruk() {
+      var strukContainer = document.getElementById('strukArea');
+      var totalInfo = kalkulasiTotal();
+      var now = new Date();
+      var date = now.toLocaleDateString('id-ID');
+      var time = now.toLocaleTimeString('id-ID');
+
+      var itemsHtml = '';
+      lastTransactionData.items.forEach(function(item) {
+        itemsHtml +=
+          '<tr>' +
+          '  <td colspan="3">' + item.produk['Nama Produk'] + '</td>' +
+          '</tr>' +
+          '<tr>' +
+          '  <td>' + item.qty + 'x</td>' +
+          '  <td style="text-align:right;">' + item.hargaAkhirSatuan.toLocaleString() + '</td>' +
+          '  <td style="text-align:right;">' + (item.qty * item.hargaAkhirSatuan).toLocaleString() + '</td>' +
+          '</tr>';
+      });
+
+      strukContainer.innerHTML =
+        '<h3>Toko Tanaman</h3>' +
+        '<p>Cabang: ' + currentUser.cabang + '</p>' +
+        '<p>Kasir: ' + currentUser.email + '</p>' +
+        '<p>Tanggal: ' + date + ' ' + time + '</p>' +
+        '<hr>' +
+        '<table>' + itemsHtml + '</table>' +
+        '<hr>' +
+        '<table>' +
+        '  <tr class="total-line">' +
+        '    <td colspan="2">Subtotal</td>' +
+        '    <td style="text-align:right;">' + (totalInfo.totalAkhir + totalInfo.totalHemat).toLocaleString() + '</td>' +
+        '  </tr>' +
+        (totalInfo.totalHemat > 0 ?
+        '  <tr>' +
+        '    <td colspan="2">Diskon</td>' +
+        '    <td style="text-align:right;">-' + totalInfo.totalHemat.toLocaleString() + '</td>' +
+        '  </tr>' : '') +
+        '  <tr class="total-line">' +
+        '    <td colspan="2"><strong>TOTAL</strong></td>' +
+        '    <td style="text-align:right;"><strong>' + totalInfo.totalAkhir.toLocaleString() + '</strong></td>' +
+        '  </tr>' +
+        '</table>' +
+        '<p class="footer">Terima kasih telah berbelanja!</p>';
+    }
+
+    function cetakStruk() {
+      window.print();
+    }
+    
+    function tampilkanHalaman(halaman) {
+      var posPage = document.getElementById('posPage');
+      var laporanPage = document.getElementById('laporanPage');
+      var navKasir = document.getElementById('navKasir');
+      var navLaporan = document.getElementById('navLaporan');
+      if (halaman === 'laporan') {
+        posPage.classList.add('hidden');
+        laporanPage.classList.remove('hidden');
+        navKasir.classList.remove('active');
+        navLaporan.classList.add('active');
+        muatLaporan();
+      } else {
+        laporanPage.classList.add('hidden');
+        posPage.classList.remove('hidden');
+        navLaporan.classList.remove('active');
+        navKasir.classList.add('active');
+      }
+    }
+    
+    function muatLaporan() {
+      if (!currentUser) return;
+      document.getElementById('reportLoader').classList.remove('hidden');
+      document.getElementById('reportContent').classList.add('hidden');
+      document.getElementById('detailDropdownContainer').innerHTML = ''; // Kosongkan container
+
+      google.script.run.withSuccessHandler(tampilkanDataLaporan).withFailureHandler(gagalMuatLaporan).getLaporanHarian({ role: currentUser.role, cabang: currentUser.cabang });
+      google.script.run.withSuccessHandler(tampilkanDetailLaporan).withFailureHandler(gagalMuatLaporan).getLaporanDetail({ role: currentUser.role, cabang: currentUser.cabang });
+    }
+
+    function gagalMuatLaporan(error) {
+      var loader = document.getElementById('reportLoader');
+      loader.textContent = 'Gagal memuat laporan: ' + error.toString();
+    }
+    
+    function tampilkanDataLaporan(data) {
+      if (data.error) {
+        gagalMuatLaporan(data.error);
+        return;
+      }
+      var reportContent = document.getElementById('reportContent');
+      reportContent.innerHTML = '';
+      var grandTotal = 0;
+      var grandTransaksi = 0;
+      data.reports.forEach(function(report) {
+        var reportHTML = 
+          '<div class="report-card">' +
+          '<h4>Laporan Cabang: ' + report.cabang + '</h4>' +
+          '<div class="report-grid">' +
+          '  <div><h4>Total Penjualan</h4><p>Rp ' + report.totalPenjualan.toLocaleString() + '</p></div>' +
+          '  <div><h4>Jumlah Transaksi</h4><p>' + report.jumlahTransaksi + '</p></div>' +
+          '  <div><h4>Penjualan Tunai</h4><p>Rp ' + report.totalTunai.toLocaleString() + '</p></div>' +
+          '  <div><h4>Penjualan Non-Tunai</h4><p>Rp ' + report.totalNonTunai.toLocaleString() + '</p></div>' +
+          '</div></div>';
+        reportContent.innerHTML += reportHTML;
+        grandTotal += report.totalPenjualan;
+        grandTransaksi += report.jumlahTransaksi;
+      });
+      if (currentUser.role === 'Admin' && data.reports.length > 1) {
+        document.getElementById('laporanTitle').textContent = 'Laporan Gabungan Semua Cabang';
+        var grandTotalHTML = 
+          '<div class="report-grand-total">' +
+          '<h3>Total Keseluruhan (Semua Cabang)</h3>' +
+          '<h4>Total Pemasukan: Rp ' + grandTotal.toLocaleString() + '</h4>' +
+          '<h4>Total Transaksi: ' + grandTransaksi + '</h4></div>';
+        reportContent.innerHTML += grandTotalHTML;
+      } else if (currentUser.role === 'Kasir' || data.reports.length === 1) {
+        document.getElementById('laporanTitle').textContent = 'Laporan Penjualan Hari Ini (' + currentUser.cabang + ')';
+      }
+      document.getElementById('reportLoader').classList.add('hidden');
+      reportContent.classList.remove('hidden');
+    }
+    
+    function tampilkanDetailLaporan(data) {
+        var mainContainer = document.getElementById('detailDropdownContainer');
+        mainContainer.innerHTML = ''; // Selalu bersihkan container
+
+        if(data.error) {
+            mainContainer.innerHTML = '<p style="color:red;">Gagal memuat detail.</p>';
+            return;
+        }
+
+        // Fungsi bantuan untuk membuat tabel HTML dari daftar transaksi
+        function createDetailTable(transactions) {
+            if (!transactions || transactions.length === 0) {
+                return '<p>Tidak ada detail transaksi untuk ditampilkan.</p>';
+            }
+            var table = '<div style="overflow-x:auto;"><table class="report-detail-table"><thead><tr><th>Waktu</th><th>Produk</th><th>Qty</th><th>Harga Satuan</th><th>Total</th></tr></thead><tbody>';
+            transactions.forEach(function(item) {
+                table += '<tr>';
+                table += '<td>' + item.timestamp + '</td>';
+                table += '<td>' + item.produk + ' (' + (item.variasi || '') + ')</td>';
+                table += '<td>' + item.qty + '</td>';
+                table += '<td>' + item.hargaSatuan.toLocaleString() + '</td>';
+                table += '<td>' + item.total.toLocaleString() + '</td>';
+                table += '</tr>';
+            });
+            table += '</tbody></table></div>';
+            return table;
+        }
+
+        if (currentUser.role === 'Admin' && data.groupedTransactions) {
+            var cabangKeys = Object.keys(data.groupedTransactions);
+            if (cabangKeys.length === 0) {
+              mainContainer.innerHTML = '<p>Belum ada detail transaksi hari ini di semua cabang.</p>';
+              return;
+            }
+            cabangKeys.forEach(function(cabangName) {
+                var detailsElement = document.createElement('details');
+                detailsElement.innerHTML = 
+                    '<summary>Lihat Detail Item Terjual - Cabang ' + cabangName + '</summary>' +
+                    createDetailTable(data.groupedTransactions[cabangName]);
+                mainContainer.appendChild(detailsElement);
+            });
+        } 
+        else if (currentUser.role !== 'Admin' && data.transactions) {
+            var detailsElement = document.createElement('details');
+            detailsElement.innerHTML = 
+                '<summary>Lihat Detail Item Terjual Hari Ini</summary>' +
+                createDetailTable(data.transactions);
+            mainContainer.appendChild(detailsElement);
+        } else {
+             mainContainer.innerHTML = '<p>Belum ada detail transaksi hari ini.</p>';
+        }
+    }
+
+    function toggleInfoModalView() {
+      var isChecked = document.getElementById('toggleInfoModal').checked;
+      var adminInfoElements = document.querySelectorAll('.product-admin-info');
+      adminInfoElements.forEach(function(el) {
+        el.classList.toggle('hidden', !isChecked);
+      });
+    }
+
+    function filterByCategory(jenis) {
+      document.getElementById('categorySelect').value = jenis;
+      currentPage = 1;
+      updateProductView();
+    }
+    
+    function updateProductView() {
+      var activeCategory = document.getElementById('categorySelect').value;
+      var searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      var allCards = document.querySelectorAll('.product-card');
+      var filteredCards = Array.from(allCards).filter(function(card) {
+        var cardCategory = card.dataset.jenis;
+        var cardText = card.innerText.toLowerCase();
+        var isCategoryMatch = (activeCategory === 'Semua' || cardCategory === activeCategory);
+        var isSearchMatch = cardText.includes(searchTerm);
+        return isCategoryMatch && isSearchMatch;
+      });
+      allCards.forEach(function(card) {
+        card.style.display = 'none';
+      });
+      var totalPages = Math.ceil(filteredCards.length / itemsPerPage);
+      var startIndex = (currentPage - 1) * itemsPerPage;
+      var endIndex = startIndex + itemsPerPage;
+      var pageCards = filteredCards.slice(startIndex, endIndex);
+      pageCards.forEach(function(card) {
+        card.style.display = 'block';
+      });
+      updatePaginationControls(totalPages, filteredCards.length);
+    }
+    
+    function updatePaginationControls(totalPages) {
+      var controls = document.getElementById('paginationControls');
+      var prevBtn = document.getElementById('prevPageBtn');
+      var nextBtn = document.getElementById('nextPageBtn');
+      var pageInfo = document.getElementById('pageInfo');
+      if (totalPages > 1) {
+        controls.classList.remove('hidden');
+        pageInfo.textContent = 'Halaman ' + currentPage + ' dari ' + totalPages;
+        prevBtn.disabled = (currentPage === 1);
+        nextBtn.disabled = (currentPage === totalPages);
+      } else {
+        controls.classList.add('hidden');
+      }
+    }
+    
+    function changePage(direction) {
+      currentPage += direction;
+      updateProductView();
+    }
   </script>
 </body>
 </html>
